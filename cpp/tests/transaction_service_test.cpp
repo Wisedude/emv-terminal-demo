@@ -78,6 +78,30 @@ void hostRequestCarriesTransactionContext() {
     require(request.opaqueCryptogram == "SIMULATED-FIRST", "opaque ARQC must be forwarded");
     require(request.cardToken == "SIMULATED-CARD-01", "card token must be forwarded");
     require(f.kernel.lastTransaction.application.aid == "A0000000031010", "kernel must receive the selected application");
+    require((request.iccData == Bytes{0x9F, 0x26, 0x01, 0xAA}), "kernel's DE 55 ICC data must be sent to the host");
+}
+
+void resultCarriesKernelEmvData() {
+    Fixture online(CryptogramType::ARQC);
+    Fixture offline(CryptogramType::TC);
+    require(online.sale().emvData.size() == 1, "online result must carry the kernel's EMV data");
+    require(offline.sale().emvData.size() == 1, "offline result must carry the kernel's EMV data");
+}
+
+void unsupportedAidFailsApplicationSelection() {
+    FakeReader emptyReader({});
+    FakeKernel kernel(CryptogramType::TC);
+    FirstCandidateSelector selector;
+    FakeHost host;
+    TransactionService service(kConfig, emptyReader, kernel, selector, host);
+    try {
+        service.runSale(EntryMode::Insert, 100, "T1");
+    } catch (const std::runtime_error& error) {
+        require(std::string(error.what()).find("Application selection failed") == 0,
+                "error must say application selection failed");
+        return;
+    }
+    throw std::runtime_error("no mutually supported AID must fail");
 }
 
 void rejectsInvalidInput() {
@@ -106,6 +130,49 @@ void failsWhenNoApplicationsOrSelectionCancelled() {
     require(kernel.firstCryptogramRequests == 0, "kernel processing must not start without a selected application");
 }
 
+void reportsServiceStagesOnOnlinePath() {
+    Fixture f(CryptogramType::ARQC);
+    RecordingObserver observer;
+    f.service.runSale(EntryMode::Insert, 12500, "TEST-TRANSACTION", observer);
+
+    const std::vector<std::string> expected{
+        "APPLICATION_SELECTION:STARTED", "APPLICATION_SELECTION:COMPLETED",
+        "ONLINE_AUTHORIZATION:STARTED", "ONLINE_AUTHORIZATION:COMPLETED",
+        "SECOND_CARD_ACTION_ANALYSIS:STARTED", "SECOND_CARD_ACTION_ANALYSIS:COMPLETED",
+        "ISSUER_SCRIPT_PROCESSING:COMPLETED"};
+    require(observer.events == expected, "service must report its stages in order on the online path");
+}
+
+void reportsOnlineStagesSkippedWhenOffline() {
+    Fixture f(CryptogramType::TC);
+    RecordingObserver observer;
+    f.service.runSale(EntryMode::Insert, 12500, "TEST-TRANSACTION", observer);
+
+    require(observer.saw("ONLINE_AUTHORIZATION:SKIPPED"), "online authorization must be reported skipped");
+    require(observer.saw("SECOND_CARD_ACTION_ANALYSIS:SKIPPED"), "second card action analysis must be reported skipped");
+    require(observer.saw("ISSUER_SCRIPT_PROCESSING:SKIPPED"), "issuer scripts must be reported skipped");
+}
+
+void reportsMissingSecondGenerateAcAsSkipped() {
+    Fixture f(CryptogramType::ARQC, /*hostApproves=*/true, /*hasSecondGenerateAc=*/false);
+    RecordingObserver observer;
+    f.service.runSale(EntryMode::Tap, 12500, "TEST-TRANSACTION", observer);
+
+    require(observer.saw("SECOND_CARD_ACTION_ANALYSIS:SKIPPED"), "absent second GENERATE AC must be reported skipped");
+}
+
+void unreachableHostNeverApproves() {
+    FakeReader reader;
+    FakeKernel kernel(CryptogramType::ARQC);
+    FirstCandidateSelector selector;
+    UnreachableHost host;
+    TransactionService service(kConfig, reader, kernel, selector, host);
+
+    requireThrows<HostUnavailableError>([&] { service.runSale(EntryMode::Insert, 100, "T1"); },
+                                        "host failure must surface as HostUnavailableError");
+    require(kernel.onlineCompletions == 0, "kernel must not complete online without an issuer response");
+}
+
 } // namespace
 
 int main() {
@@ -118,5 +185,11 @@ int main() {
         {"hostRequestCarriesTransactionContext", hostRequestCarriesTransactionContext},
         {"rejectsInvalidInput", rejectsInvalidInput},
         {"failsWhenNoApplicationsOrSelectionCancelled", failsWhenNoApplicationsOrSelectionCancelled},
+        {"reportsServiceStagesOnOnlinePath", reportsServiceStagesOnOnlinePath},
+        {"reportsOnlineStagesSkippedWhenOffline", reportsOnlineStagesSkippedWhenOffline},
+        {"reportsMissingSecondGenerateAcAsSkipped", reportsMissingSecondGenerateAcAsSkipped},
+        {"unreachableHostNeverApproves", unreachableHostNeverApproves},
+        {"resultCarriesKernelEmvData", resultCarriesKernelEmvData},
+        {"unsupportedAidFailsApplicationSelection", unsupportedAidFailsApplicationSelection},
     });
 }

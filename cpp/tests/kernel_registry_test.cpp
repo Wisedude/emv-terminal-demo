@@ -14,8 +14,9 @@ void createsRegisteredKernelsByName() {
     registry.add("decline-offline", [] { return std::make_unique<FakeKernel>(CryptogramType::AAC); });
 
     const auto kernel = registry.create("decline-offline");
+    NullTransactionObserver observer;
     require(kernel != nullptr, "registered kernel must be created");
-    require(kernel->processUntilFirstCryptogram({}).type == CryptogramType::AAC, "the named kernel must be created");
+    require(kernel->processUntilFirstCryptogram({}, observer).type == CryptogramType::AAC, "the named kernel must be created");
     require(registry.contains("approve-offline"), "registry must report registered names");
     require((registry.names() == std::vector<std::string>{"approve-offline", "decline-offline"}),
             "names must list every registered kernel");

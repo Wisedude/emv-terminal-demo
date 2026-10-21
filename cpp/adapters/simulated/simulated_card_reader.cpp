@@ -1,14 +1,18 @@
 #include "simulated/simulated_card_reader.hpp"
+#include "simulated/simulated_cards.hpp"
 #include <iostream>
 
 namespace emv::simulated {
 
+SimulatedCardReader::SimulatedCardReader(SimulatedCardId card) : card_(card) {}
+
 CardProfile SimulatedCardReader::waitForCard(EntryMode mode) {
-    std::cout << "[Reader] Waiting for " << toString(mode) << " card (simulated)...\n";
-    return {"SIMULATED-CARD-01", {
-        {"A0000000031010", "Visa credit (test)"},
-        {"A0000000041010", "Mastercard (test)"},
-    }};
+    const SimulatedCard& card = simulatedCard(card_);
+    std::cout << "[Reader] " << toString(mode) << ": " << card.description << " presented (simulated)\n";
+
+    CardProfile profile{card.token, {}};
+    for (const auto& application : card.applications) profile.applications.push_back(application.candidate);
+    return profile;
 }
 
 } // namespace emv::simulated

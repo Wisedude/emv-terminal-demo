@@ -1,66 +1,58 @@
 #include "simulated/simulated_contact_kernel.hpp"
-#include <iostream>
+#include <utility>
 
 namespace emv::simulated {
 
+SimulatedContactKernel::SimulatedContactKernel(std::shared_ptr<const config::EmvConfiguration> configuration,
+                                               SimulationOptions options)
+    : engine_(std::move(configuration), CardInterface::Contact, options.cardBehaviour) {}
+
 std::vector<ApplicationCandidate> SimulatedContactKernel::buildCandidateList(const CardProfile& card) {
-    std::cout << "[Contact kernel] Build candidate list: " << card.applications.size() << " application(s)\n";
-    return card.applications;
+    return engine_.buildCandidateList(card);
 }
 
-void SimulatedContactKernel::initiateApplicationProcessing(const KernelTransaction& transaction) {
-    std::cout << "[Contact kernel] Initiate application processing for " << transaction.application.aid << "\n";
+std::string SimulatedContactKernel::initiateApplicationProcessing(const KernelTransaction& transaction) {
+    return engine_.initiateApplicationProcessing(transaction);
 }
 
-void SimulatedContactKernel::readApplicationData(const KernelTransaction&) {
-    std::cout << "[Contact kernel] Read application data (simulated)\n";
+std::string SimulatedContactKernel::readApplicationData(const KernelTransaction&) {
+    return engine_.readApplicationData();
 }
 
-void SimulatedContactKernel::checkProcessingRestrictions(const KernelTransaction&) {
-    std::cout << "[Contact kernel] Check application usage and processing restrictions (simulated)\n";
+std::string SimulatedContactKernel::checkProcessingRestrictions(const KernelTransaction&) {
+    return engine_.checkProcessingRestrictions();
 }
 
-void SimulatedContactKernel::performOfflineDataAuthentication(const KernelTransaction&) {
-    std::cout << "[Contact kernel] Perform offline data authentication (simulated)\n";
+std::string SimulatedContactKernel::performOfflineDataAuthentication(const KernelTransaction&) {
+    return engine_.selectOfflineDataAuthentication();
 }
 
-void SimulatedContactKernel::validateCertificates(const KernelTransaction&) {
-    std::cout << "[Contact kernel] Validate EMV certificate chain as part of ODA (simulated)\n";
+std::string SimulatedContactKernel::validateCertificates(const KernelTransaction&) {
+    return engine_.authenticateOfflineData();
 }
 
-void SimulatedContactKernel::performCardholderVerification(const KernelTransaction&) {
-    std::cout << "[Contact kernel] Perform cardholder verification (simulated)\n";
+std::string SimulatedContactKernel::performCardholderVerification(const KernelTransaction&) {
+    return engine_.verifyCardholder();
 }
 
-void SimulatedContactKernel::performTerminalRiskManagement(const KernelTransaction& transaction) {
-    std::cout << "[Contact kernel] Terminal risk management for amount minor=" << transaction.amountMinor
-              << " (simulated)\n";
+std::string SimulatedContactKernel::performTerminalRiskManagement(const KernelTransaction&) {
+    return engine_.manageTerminalRisk();
 }
 
-void SimulatedContactKernel::performTerminalActionAnalysis(const KernelTransaction&) {
-    std::cout << "[Contact kernel] Perform terminal action analysis (simulated)\n";
+std::string SimulatedContactKernel::performTerminalActionAnalysis(const KernelTransaction&) {
+    return engine_.analyseTerminalActions();
 }
 
-FirstCryptogram SimulatedContactKernel::firstGenerateAc(const KernelTransaction& transaction) {
-    std::cout << "[Contact kernel] First card action analysis / GENERATE AC for " << transaction.application.aid
-              << ", amount minor=" << transaction.amountMinor << "\n";
-    // Opaque placeholder only. Never generate/derive EMV cryptograms in the application layer.
-    return {CryptogramType::ARQC, "SIMULATED-ARQC"};
+FirstCryptogram SimulatedContactKernel::firstGenerateAc(const KernelTransaction&) {
+    return engine_.generateFirstAc();
 }
 
 OnlineCompletion SimulatedContactKernel::completeOnlineTransaction(const HostResponse& issuerResponse) {
-    std::cout << "[Contact kernel] Issuer response: " << issuerResponse.responseCode
-              << "; issuer auth data present=" << (issuerResponse.issuerAuthenticationData ? "yes" : "no") << "\n"
-              << "[Contact kernel] Process issuer scripts in kernel-defined order (none in stub)\n"
-              << "[Contact kernel] Second card action analysis / GENERATE AC\n";
+    return engine_.completeOnlineTransaction(issuerResponse);
+}
 
-    OnlineCompletion completion;
-    completion.finalCryptogram = issuerResponse.approved
-        ? FinalCryptogram{CryptogramType::TC, "SIMULATED-TC"}
-        : FinalCryptogram{CryptogramType::AAC, "SIMULATED-AAC"};
-    completion.issuerScriptsProcessed = true;
-    completion.issuerScriptStatus = "No issuer scripts supplied; kernel hook completed";
-    return completion;
+TlvList SimulatedContactKernel::transactionData() const {
+    return engine_.transactionData();
 }
 
 } // namespace emv::simulated

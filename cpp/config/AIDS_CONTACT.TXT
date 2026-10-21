@@ -1,0 +1,86 @@
+# Contact (chip) AID configuration: the applications this terminal supports on the contact interface.
+# Format: one TAG=VALUE; per line (hex), one AID per record, records separated by a blank line.
+# 9F06 carries a leading length byte (07 = 7-byte AID). A card AID that matches no record fails selection.
+#
+#   9F06      Application Identifier (AID) - terminal
+#   9F1A      Terminal Country Code            5F2A  Transaction Currency Code
+#   5F36      Transaction Currency Exponent    9F09  Application Version Number (terminal)
+#   9F918709  Terminal Action Code - Default   9F91870A  TAC - Denial   9F91870B  TAC - Online
+#   9F1B      Terminal Floor Limit (binary, minor units)
+
+# Visa Credit / Debit
+9F06= 07 A0 00 00 00 03 10 10;
+9F1A= 07 10;
+5F2A= 07 10;
+5F36= 02;
+9F918709= D8 40 00 A8 00;
+9F91870A= 00 10 00 00 00;
+9F91870B= D8 40 04 F8 00;
+9F09= 00 00;
+9F1B= 00 00 00 00;
+
+# Visa Electron
+9F06= 07 A0 00 00 00 03 20 10;
+9F1A= 07 10;
+5F2A= 07 10;
+5F36= 02;
+9F918709= D8 40 00 A8 00;
+9F91870A= 00 10 00 00 00;
+9F91870B= D8 40 04 F8 00;
+9F09= 00 8C;
+9F1B= 00 00 00 00;
+
+# Visa V PAY
+9F06= 07 A0 00 00 00 03 20 20;
+9F1A= 07 10;
+5F2A= 07 10;
+5F36= 02;
+9F918709= D8 40 00 A8 00;
+9F91870A= 00 10 00 00 00;
+9F91870B= D8 40 04 F8 00;
+9F09= 00 8C;
+9F1B= 00 00 00 00;
+
+# Mastercard Credit / Debit (floor limit R100.00: low amounts can approve offline)
+9F06= 07 A0 00 00 00 04 10 10;
+9F1A= 07 10;
+5F2A= 07 10;
+5F36= 02;
+9F918709= FC 50 AC A0 00;
+9F91870A= 00 00 00 00 00;
+9F91870B= FC 50 AC F8 00;
+9F09= 00 02;
+9F1B= 00 00 27 10;
+
+# Mastercard Maestro
+9F06= 07 A0 00 00 00 04 30 60;
+9F1A= 07 10;
+5F2A= 07 10;
+5F36= 02;
+9F918709= FC 50 AC A0 00;
+9F91870A= 00 00 80 00 00;
+9F91870B= FC 50 AC F8 00;
+9F09= 00 02;
+9F1B= 00 00 00 00;
+
+# American Express
+9F06= 06 A0 00 00 00 25 01;
+9F1A= 07 10;
+5F2A= 07 10;
+5F36= 02;
+9F918709= DC 50 FC 98 00;
+9F91870A= 00 10 00 00 00;
+9F91870B= DE 00 FC 98 00;
+9F09= 00 01;
+9F1B= 00 00 00 00;
+
+# Discover D-PAS
+9F06= 07 A0 00 00 01 52 30 10;
+9F1A= 07 10;
+5F2A= 07 10;
+5F36= 02;
+9F918709= DC 50 FC 98 00;
+9F91870A= 00 10 00 00 00;
+9F91870B= DE 00 FC 98 00;
+9F09= 00 01;
+9F1B= 00 00 00 00;

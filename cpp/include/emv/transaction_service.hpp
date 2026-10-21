@@ -4,6 +4,7 @@
 #include "emv/ports/card_reader.hpp"
 #include "emv/ports/emv_kernel.hpp"
 #include "emv/ports/host_authorizer.hpp"
+#include "emv/ports/transaction_observer.hpp"
 #include <cstdint>
 #include <string>
 
@@ -21,10 +22,14 @@ public:
 
     TransactionResult runSale(EntryMode mode, std::int64_t amountMinor, const std::string& transactionId);
 
+    // As above, reporting every stage to the observer as it happens.
+    TransactionResult runSale(EntryMode mode, std::int64_t amountMinor, const std::string& transactionId,
+                              ITransactionObserver& observer);
+
 private:
-    ApplicationCandidate selectApplication(const CardProfile& card);
+    ApplicationCandidate selectApplication(const CardProfile& card, ITransactionObserver& observer);
     TransactionResult authorizeOnline(const CardProfile& card, const KernelTransaction& transaction,
-                                      const FirstCryptogram& first);
+                                      const FirstCryptogram& first, ITransactionObserver& observer);
 
     TerminalConfig config_;
     ICardReader& reader_;

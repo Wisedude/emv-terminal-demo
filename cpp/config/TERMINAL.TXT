@@ -1,0 +1,14 @@
+# Terminal EMV configuration: data that applies to every AID (an AID record can override a tag).
+# Format: one TAG=VALUE; per line, value in hex.
+
+9F35=22;                          # Terminal Type: attended, offline with online capability, merchant
+5F2A=0710;                        # Transaction Currency Code: ZAR
+9F1A=0710;                        # Terminal Country Code: South Africa
+9F33=E0 F0 C8;                    # Terminal Capabilities: manual/mag/chip; offline+online PIN, signature; SDA, DDA, CDA
+9F40=FF 00 F0 F0 01;              # Additional Terminal Capabilities
+5F36=02;                          # Transaction Currency Exponent
+9F1C=31 32 33 34 35 36 37 38;     # Terminal Identification: "12345678"
+9F16=31 31 32 32 33 33 34 34 35 35 36 36 37 37 38;  # Merchant Identifier
+9F15=59 99;                       # Merchant Category Code: 5999
+9F01=01 23 45 67 89 01;           # Acquirer Identifier
+9F1E=53 49 4D 30 30 30 30 31;     # Interface Device Serial Number: "SIM00001"

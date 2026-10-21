@@ -4,6 +4,7 @@
 #include "emv/ports/card_reader.hpp"
 #include "emv/ports/emv_kernel.hpp"
 #include "emv/ports/host_authorizer.hpp"
+#include "emv/ports/transaction_observer.hpp"
 #include <exception>
 #include <functional>
 #include <iostream>
@@ -81,10 +82,13 @@ public:
     std::vector<ApplicationCandidate> buildCandidateList(const CardProfile& card) override {
         return card.applications;
     }
-    FirstCryptogram processUntilFirstCryptogram(const KernelTransaction& transaction) override {
+    FirstCryptogram processUntilFirstCryptogram(const KernelTransaction& transaction, ITransactionObserver&) override {
         ++firstCryptogramRequests;
         lastTransaction = transaction;
-        return {firstOutcome_, "SIMULATED-FIRST"};
+        return {firstOutcome_, "SIMULATED-FIRST", Bytes{0x9F, 0x26, 0x01, 0xAA}};
+    }
+    TlvList transactionData() const override {
+        return {{0x95, Bytes{0x00, 0x00, 0x00, 0x80, 0x00}}};
     }
     OnlineCompletion completeOnlineTransaction(const HostResponse& response) override {
         ++onlineCompletions;
@@ -107,13 +111,40 @@ private:
     bool hasSecondGenerateAc_;
 };
 
+// Records every stage event as "STAGE:STATUS".
+class RecordingObserver final : public ITransactionObserver {
+public:
+    void onStage(TransactionStage stage, StageStatus status, const std::string& detail) override {
+        events.push_back(toString(stage) + ":" + toString(status));
+        details.push_back(detail);
+    }
+    std::string detailOf(const std::string& event) const {
+        for (std::size_t i = 0; i < events.size(); ++i) {
+            if (events[i] == event) return details[i];
+        }
+        return {};
+    }
+    bool saw(const std::string& event) const {
+        for (const auto& recorded : events) if (recorded == event) return true;
+        return false;
+    }
+
+    std::vector<std::string> events;
+    std::vector<std::string> details;
+};
+
+class UnreachableHost final : public IHostAuthorizer {
+public:
+    HostResponse authorize(const HostRequest&) override { throw HostUnavailableError("connection refused"); }
+};
+
 class FakeHost final : public IHostAuthorizer {
 public:
     explicit FakeHost(bool approve = true) : approve_(approve) {}
     HostResponse authorize(const HostRequest& request) override {
         ++calls;
         lastRequest = request;
-        return {approve_, approve_ ? "00" : "05", "TEST01", std::string("DEMO-ARPC"), approve_ ? "Approved" : "Declined"};
+        return {approve_, approve_ ? "00" : "05", "TEST01", Bytes{0xA1, 0xB2}, approve_ ? "Approved" : "Declined"};
     }
 
     int calls = 0;

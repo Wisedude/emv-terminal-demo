@@ -4,3 +4,17 @@
 @media(max-width:760px){.shell{padding:0 17px}.topbar{height:70px}.top-right{font-size:8px}.workspace{grid-template-columns:1fr;gap:34px;padding:30px 0}.right-column{border-left:0;border-top:1px solid #1b3040;padding:27px 0 0}.left-column h1{font-size:30px}.entry-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.entry-name{font-size:10px}.terminal-preview{width:75%}footer{flex-direction:column;font-size:8px}.panel-label span{float:none;display:block;margin-top:5px}.result-rows strong{max-width:60%;overflow-wrap:anywhere}}
 @media(max-width:390px){.entry-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.terminal-preview{width:95%}.amount-input input{font-size:29px}.monitor-heading{align-items:flex-start;flex-direction:column}.section-heading h2{font-size:16px}}
 .scenario-select{display:flex;flex-direction:column;gap:8px;margin-top:16px;color:#8ca4b7;font:500 10px 'DM Mono';letter-spacing:1px}.scenario-select select{width:100%;padding:10px 12px;border:1px solid #294254;border-radius:6px;background:#0b1a26;color:#d9e6ee;font:500 12px 'DM Sans';letter-spacing:0}.scenario-select select:disabled{opacity:.65}.stage.skipped .stage-marker{border-style:dashed;color:#647e90}.stage.skipped .stage-title,.stage.skipped .stage-title span,.stage.skipped .stage-copy p{color:#647e90}
+
+.scenario-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.emv-card{margin-top:14px;padding:16px 18px;background:linear-gradient(145deg,#102231,#0c1b28);border:1px solid #203849;border-radius:12px}
+.emv-block{padding:11px 0;border-bottom:1px solid #1d3242}
+.emv-block-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.emv-block-head strong{font-size:12px;color:#43d7b3}
+.emv-block ul{margin:8px 0 0;padding-left:16px;color:#c8d8e3;font-size:11px;line-height:1.6}
+.emv-none{margin:6px 0 0;font-size:11px;color:#8096a5}
+.emv-tags{margin-top:12px;font-size:11px;color:#8ca4b7}
+.emv-tags summary{cursor:pointer;font:500 10px 'DM Mono';letter-spacing:1.2px;color:#8ca4b7}
+.emv-tags table{width:100%;margin-top:8px;border-collapse:collapse}
+.emv-tags td{padding:5px 6px;border-top:1px solid #1d3242;color:#c8d8e3;vertical-align:top;word-break:break-all}
+.emv-tags td:first-child{color:#43d7b3;white-space:nowrap}
+.arpc-script{margin-top:10px}
